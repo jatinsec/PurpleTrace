@@ -1,0 +1,54 @@
+# Sample detection logic for PurpleTrace scenarios.
+#
+# Two rule "kinds":
+#   match      -> alert if ANY single event matches all the given field conditions.
+#   threshold  -> alert if events matching the field conditions, grouped by `group_by`,
+#                 reach `min_count` within `window_minutes` for the same group key.
+#
+# Field conditions support:
+#   equals:   exact string match
+#   contains: substring match (case-insensitive)
+#   in:       value must be one of the listed strings
+
+rules:
+  - id: DET-T1087-enum
+    name: "Account-enumeration command burst"
+    mitre: "T1087.001"
+    applies_to_scenario: T1087-enum
+    kind: threshold
+    event_type: process_creation
+    conditions:
+      process: {in: ["net.exe", "net1.exe"]}
+    group_by: [host, user]
+    min_count: 3
+    window_minutes: 10
+
+  - id: DET-T1110-bruteforce
+    name: "Authentication brute-force burst"
+    mitre: "T1110"
+    applies_to_scenario: T1110-bruteforce
+    kind: threshold
+    event_type: auth_failure
+    conditions: {}
+    group_by: [user, source_ip]
+    min_count: 5
+    window_minutes: 5
+
+  - id: DET-T1059-susproc
+    name: "Script interpreter spawned from office document process"
+    mitre: "T1059"
+    applies_to_scenario: T1059-susproc
+    kind: match
+    event_type: process_creation
+    conditions:
+      parent_process: {in: ["winword.exe", "excel.exe", "outlook.exe"]}
+      process: {in: ["powershell.exe", "cmd.exe", "wscript.exe"]}
+
+  - id: DET-T1003-credaccess
+    name: "Read access to a known credential-store path"
+    mitre: "T1003"
+    applies_to_scenario: T1003-credaccess
+    kind: match
+    event_type: file_access
+    conditions:
+      path: {contains_any: ["shadow", "sam"]}

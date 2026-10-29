@@ -1,0 +1,50 @@
+# PurpleTrace lab scenarios.
+#
+# Each scenario generates BENIGN, synthetic log events that mimic the shape
+# of real telemetry for a given technique, so you can validate that your
+# detection rules/logging pipeline would actually catch the real thing.
+#
+# These events are plain JSON lines written to a local file. Nothing here
+# executes a real credential dump, a real beacon, or any real attacker
+# tooling — it only writes text that LOOKS like what a SIEM/EDR would log
+# if that technique happened, labelled "simulated": true throughout.
+
+scenarios:
+  - id: T1087-enum
+    name: "Simulated local account enumeration"
+    mitre: "T1087.001 (Account Discovery: Local Account)"
+    description: >
+      Emits synthetic process-execution events resembling a burst of
+      account-enumeration commands (e.g. net user / net group), as a
+      defender's logging pipeline would see them. No command is executed.
+    event_count: 6
+
+  - id: T1110-bruteforce
+    name: "Simulated authentication brute-force burst"
+    mitre: "T1110 (Brute Force)"
+    description: >
+      Emits synthetic auth-failure events against a single account from a
+      single synthetic source IP within a short window, at a rate that
+      should trip a reasonable failed-login-burst detection rule. No real
+      authentication attempt is made against any system.
+    event_count: 12
+
+  - id: T1059-susproc
+    name: "Simulated suspicious script-interpreter execution"
+    mitre: "T1059 (Command and Scripting Interpreter)"
+    description: >
+      Emits a synthetic process-creation event where a script interpreter
+      is the child of an office-document process — a classic detection
+      pivot point — with an encoded-looking (but harmless, static) command
+      line. No interpreter is actually launched.
+    event_count: 3
+
+  - id: T1003-credaccess
+    name: "Simulated credential-access-adjacent file read"
+    mitre: "T1003 (OS Credential Dumping) — detection-validation only"
+    description: >
+      Emits a synthetic file-access event naming a well-known
+      credential-store path (e.g. a SAM/ntds-style path or /etc/shadow-style
+      path) as the target of a read, for validating file-integrity/EDR
+      alerting. No such file is actually read on this machine.
+    event_count: 2
